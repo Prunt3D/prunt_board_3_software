@@ -54,7 +54,7 @@ _start_rom:
 	cmp	r1, r2
 	bne	prunt_boot
 	mov	r1, #0
-	str	r1, [r0]
+	mov	r2, #0
 	movw	r0, #0x2000
 	movt	r0, #0x0803
 	ldr	sp, [r0]

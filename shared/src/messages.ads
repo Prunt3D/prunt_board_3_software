@@ -36,6 +36,8 @@ package Messages is
 
    type Client_Version is mod 2**32 with Size => 32;
 
+   Current_Firmware_Version : constant Client_Version := 12;
+
    type Client_ID_Part is mod 2**32 with Size => 32;
 
    type Client_ID is array (1 .. 4) of Client_ID_Part
