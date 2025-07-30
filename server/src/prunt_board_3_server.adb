@@ -735,7 +735,7 @@ procedure Prunt_Board_3_Server is
         Update_Check                     =>
           (Method       => Github,
            Repository   => Ada.Strings.Unbounded.To_Unbounded_String ("prunt3d/prunt_board_3_software"),
-           Expected_Tag => Ada.Strings.Unbounded.To_Unbounded_String ("v1.6.2")),
+           Expected_Tag => Ada.Strings.Unbounded.To_Unbounded_String ("v1.7.0")),
         Input_Switch_Visible_To_User     => (Stepper_Diag_0 => False, others => True));
 
    procedure Report_Error (Occurrence : Ada.Exceptions.Exception_Occurrence; Is_Fatal : Boolean := True) is
