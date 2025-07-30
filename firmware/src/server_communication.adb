@@ -20,6 +20,7 @@ with MCU_Temperature;
 with Current_Sense;
 with System.Machine_Code;
 with System.Machine_Reset;
+with Kalico_Reboot;
 
 package body Server_Communication is
 
@@ -334,9 +335,7 @@ package body Server_Communication is
                         Boolean (RX_Message.Content.Use_High_Side_Switching));
 
                   when Kalico_Reboot_Kind =>
-                     Kalico_Persistent_Boot_Flag := 16#0B1C_93F0#;
-                     Heaters.Make_Safe;
-                     System.Machine_Reset.Stop;
+                     Kalico_Reboot.Reboot_To_Kalico;
 
                   when Firmware_Update_Start_Kind =>
                      Set_TX_Message_Kind (Firmware_Update_Reply_Kind);

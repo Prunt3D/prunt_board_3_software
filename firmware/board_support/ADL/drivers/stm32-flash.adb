@@ -164,4 +164,50 @@ package body STM32.Flash is
       raise Constraint_Error with "MCU was meant to reset.";
    end Switch_Active_Bank_And_Reset;
 
+   function Is_PG10_GPIO (This : in out Flash_Memory) return Boolean is
+   begin
+      return This.OPTR.NRST_MODE = 2;
+   end Is_PG10_GPIO;
+
+   procedure Set_PG10_GPIO_And_Reset (This : in out Flash_Memory) is
+   begin
+      --  TODO: We should probably make this protected in case the user is doing multitasking stuff.
+      loop
+         exit when not This.SR.BSY;
+      end loop;
+
+      if This.OPTR.NRST_MODE = 2 then
+         raise Constraint_Error with "PG10 is already GPIO.";
+      end if;
+
+      This.OPTKEYR := 16#0819_2A3B#;
+      This.OPTKEYR := 16#4C5D_6E7F#;
+
+      if This.CR.OPTLOCK then
+         raise Constraint_Error with "Option bytes locked.";
+      end if;
+
+      Disable_Cache (This);
+
+      This.OPTR.NRST_MODE := 2;
+
+      This.CR.OPTSTRT := True;
+
+      loop
+         exit when not This.SR.BSY;
+      end loop;
+
+      This.CR.OBL_LAUNCH := True;
+
+      declare
+         Start_Time : constant Time := Clock;
+      begin
+         loop
+            exit when Clock > Start_Time + Milliseconds (50);
+         end loop;
+      end;
+
+      raise Constraint_Error with "MCU was meant to reset.";
+   end Set_PG10_GPIO_And_Reset;
+
 end STM32.Flash;

@@ -27,6 +27,9 @@ package STM32.Flash is
      Post => Is_In_Dual_Bank_Mode (This) and then not Is_Locked (This);
    procedure Switch_Active_Bank_And_Reset (This : in out Flash_Memory) with
      Pre => Is_In_Dual_Bank_Mode (This) and then not Is_Locked (This);
+   function Is_PG10_GPIO (This : in out Flash_Memory) return Boolean;
+   procedure Set_PG10_GPIO_And_Reset (This : in out Flash_Memory) with
+     Pre => not Is_PG10_GPIO (This) and then not Is_Locked (This);
 
 private
 
