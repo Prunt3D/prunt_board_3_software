@@ -439,10 +439,6 @@ procedure Prunt_Board_3_Server is
             Total_Offset : constant Stepper_Position :=
               (Command.Pos - Last_Commanded_Position) * Dimensionless (Loop_Move_Multiplier);
          begin
-            Ada.Text_IO.Put_Line ("Command.Pos: " & Command.Pos'Image);
-            Ada.Text_IO.Put_Line ("Last_Commanded_Position: " & Last_Commanded_Position'Image);
-            Ada.Text_IO.Put_Line ("Total_Offset: " & Total_Offset'Image);
-
             for S in Stepper_Name loop
                if abs (Total_Offset (S)) > 0.0 and abs (Total_Offset (S)) < 20.0 then
                   raise Constraint_Error with "Loop move direction vector error potentially greater than 5%.";
