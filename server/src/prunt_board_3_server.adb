@@ -705,6 +705,7 @@ procedure Prunt_Board_3_Server is
              (Kind                      => TMC2240_UART_Kind,
               Maximum_Delta_Per_Command => Dimensionless (Step_Count'Last),
               Double_Edge_Stepping      => True,
+              TMC2240_Diag_0            => Messages.Stepper_Diag_0,
               TMC2240_UART_Address      => Stepper_UART_Address (S),
               TMC2240_UART_Write        => TMC_Write'Access,
               TMC2240_UART_Read         => TMC_Read'Access)),
