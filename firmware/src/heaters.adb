@@ -20,6 +20,7 @@ package body Heaters is
          Configure (This => Tim, Prescaler => 2, Period => 50_000); --  1kHz
          Configure_Channel_Output
            (This => Tim, Channel => Channel, Mode => PWM1, State => Enable, Pulse => 0, Polarity => Polarity);
+         Set_Output_Preload_Enable (This => Tim, Channel => Channel, Enabled => True);
          Enable (Tim);
       end Init_Timer;
    begin
@@ -36,6 +37,9 @@ package body Heaters is
          Init_Timer (Heater_Timers (Heater).all, Heater_Timer_Channels (Heater), Heater_Timer_Polarities (Heater));
 
          if Heater_Timer_Complementary (Heater) then
+            Disable_Channel (Heater_Timers (Heater).all, Heater_Timer_Channels (Heater));
+            Set_Output_Complementary_Polarity
+              (Heater_Timers (Heater).all, Heater_Timer_Channels (Heater), Heater_Timer_Polarities (Heater));
             Enable_Complementary_Channel (Heater_Timers (Heater).all, Heater_Timer_Channels (Heater));
          end if;
 

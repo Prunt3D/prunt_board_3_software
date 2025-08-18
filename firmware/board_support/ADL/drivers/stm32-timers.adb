@@ -578,8 +578,14 @@ package body STM32.Timers is
      (This    : in out Timer;
       Channel : Timer_Channel)
    is
+      Temp_EGR  : UInt32 := This.EGR;
    begin
       This.CCER (Channel).CCxNE := Enable;
+
+      --  Trigger an event to initialize preload register
+      Temp_EGR := Temp_EGR or (2 ** (Timer_Channel'Pos (Channel) + 1));
+
+      This.EGR  := Temp_EGR;
    end Enable_Complementary_Channel;
 
    -----------------------------------
