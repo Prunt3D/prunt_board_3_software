@@ -81,6 +81,7 @@ package body Fans is
             Configure_Channel_Output
               (This => Tim, Channel => Channel, Mode => PWM1, State => Enable, Pulse => 0, Polarity => Polarity);
             Set_Autoreload_Preload (Tim, True);
+            Set_Output_Preload_Enable (This => Tim, Channel => Channel, Enabled => True);
             Enable (Tim);
          end Init_PWM_Timer;
 
