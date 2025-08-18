@@ -65,7 +65,7 @@ package body STM32.GPIO is
    function Any_Set (Pins : GPIO_Points) return Boolean is
    begin
       for Pin of Pins loop
-         if Pin.Set then
+         if Set (Pin) then
             return True;
          end if;
       end loop;
@@ -77,7 +77,6 @@ package body STM32.GPIO is
    -- Mode --
    ----------
 
-   overriding
    function Mode (This : GPIO_Point) return HAL.GPIO.GPIO_Mode is
    begin
       case Pin_IO_Mode (This) is
@@ -101,7 +100,6 @@ package body STM32.GPIO is
    -- Set_Mode --
    --------------
 
-   overriding
    procedure Set_Mode
      (This : in out GPIO_Point;
       Mode : HAL.GPIO.GPIO_Config_Mode)
@@ -120,7 +118,6 @@ package body STM32.GPIO is
    -- Pull_Resistor --
    -------------------
 
-   overriding
    function Pull_Resistor
      (This : GPIO_Point)
       return HAL.GPIO.GPIO_Pull_Resistor
@@ -140,7 +137,6 @@ package body STM32.GPIO is
    -- Set_Pull_Resistor --
    -----------------------
 
-   overriding
    procedure Set_Pull_Resistor
      (This : in out GPIO_Point;
       Pull : HAL.GPIO.GPIO_Pull_Resistor)
@@ -161,7 +157,6 @@ package body STM32.GPIO is
    -- Set --
    ---------
 
-   overriding
    function Set (This : GPIO_Point) return Boolean is
       Pin_Mask : constant UInt16 := GPIO_Pin'Enum_Rep (This.Pin);
    begin
@@ -175,7 +170,7 @@ package body STM32.GPIO is
    function All_Set (Pins : GPIO_Points) return Boolean is
    begin
       for Pin of Pins loop
-         if not Pin.Set then
+         if not Set (Pin) then
             return False;
          end if;
       end loop;
@@ -187,7 +182,6 @@ package body STM32.GPIO is
    -- Set --
    ---------
 
-   overriding
    procedure Set (This : in out GPIO_Point) is
    begin
       This.Periph.BSRR.BS.Val := GPIO_Pin'Enum_Rep (This.Pin);
@@ -202,7 +196,7 @@ package body STM32.GPIO is
    procedure Set (Pins : in out GPIO_Points) is
    begin
       for Pin of Pins loop
-         Pin.Set;
+         Set (Pin);
       end loop;
    end Set;
 
@@ -210,7 +204,6 @@ package body STM32.GPIO is
    -- Clear --
    -----------
 
-   overriding
    procedure Clear (This : in out GPIO_Point) is
    begin
       This.Periph.BSRR.BR.Val := GPIO_Pin'Enum_Rep (This.Pin);
@@ -225,7 +218,7 @@ package body STM32.GPIO is
    procedure Clear (Pins : in out GPIO_Points) is
    begin
       for Pin of Pins loop
-         Pin.Clear;
+         Clear (Pin);
       end loop;
    end Clear;
 
@@ -233,7 +226,6 @@ package body STM32.GPIO is
    -- Toggle --
    ------------
 
-   overriding
    procedure Toggle (This : in out GPIO_Point) is
    begin
       This.Periph.ODR.ODR.Val := This.Periph.ODR.ODR.Val xor GPIO_Pin'Enum_Rep (This.Pin);
@@ -246,7 +238,7 @@ package body STM32.GPIO is
    procedure Toggle (Points : in out GPIO_Points) is
    begin
       for Point of Points loop
-         Point.Toggle;
+         Toggle (Point);
       end loop;
    end Toggle;
 
@@ -257,9 +249,9 @@ package body STM32.GPIO is
    procedure Drive (This : in out GPIO_Point; Condition : Boolean) is
    begin
       if Condition then
-         This.Set;
+         Set (This);
       else
-         This.Clear;
+         Clear (This);
       end if;
    end Drive;
 
@@ -351,7 +343,7 @@ package body STM32.GPIO is
    begin
       for Point of Points loop
          if not Locked (Point) then
-            Point.Lock;
+            Lock (Point);
          end if;
       end loop;
    end Lock;
@@ -392,7 +384,7 @@ package body STM32.GPIO is
    is
    begin
       for Point of Points loop
-         Point.Configure_IO (Config);
+         Configure_IO (Point, Config);
       end loop;
    end Configure_IO;
 
@@ -423,7 +415,7 @@ package body STM32.GPIO is
    is
    begin
       for Point of Points loop
-         Point.Configure_Alternate_Function (AF);
+         Configure_Alternate_Function (Point, AF);
       end loop;
    end Configure_Alternate_Function;
 
@@ -470,7 +462,7 @@ package body STM32.GPIO is
    is
    begin
       for Point of Points loop
-         Point.Configure_Trigger (Trigger);
+         Configure_Trigger (Point, Trigger);
       end loop;
    end Configure_Trigger;
 

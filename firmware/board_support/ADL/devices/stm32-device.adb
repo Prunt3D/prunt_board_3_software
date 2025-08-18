@@ -1061,39 +1061,6 @@ package body STM32.Device is
    -- Enable_Clock --
    ------------------
 
-   procedure Enable_Clock (This : RTC_Device) is
-      pragma Unreferenced (This);
-   begin
-      RCC_Periph.BDCR.RTCEN := True;
-   end Enable_Clock;
-
-   -------------------------
-   -- Select_Clock_Source --
-   -------------------------
-
-   procedure Select_Clock_Source
-     (This       : RTC_Device;
-      Source     : RTC_Clock_Source)
-   is
-   begin
-      RCC_Periph.BDCR.RTCSEL := Source'Enum_Rep;
-   end Select_Clock_Source;
-
-   ------------------------
-   -- Read_Clock_Source --
-   ------------------------
-
-   function Read_Clock_Source (This : RTC_Device) return RTC_Clock_Source
-   is
-      pragma Unreferenced (This);
-   begin
-      return RTC_Clock_Source'Val (RCC_Periph.BDCR.RTCSEL);
-   end Read_Clock_Source;
-
-   ------------------
-   -- Enable_Clock --
-   ------------------
-
    procedure Enable_Clock (This : Timer) is
    begin
       if This'Address = TIM1_Base then

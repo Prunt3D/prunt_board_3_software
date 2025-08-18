@@ -308,8 +308,9 @@ package body STM32.PWM is
       AF_Speed : Pin_Output_Speeds)
    is
    begin
-      Output.Configure_IO
-        ((Mode_AF,
+      Configure_IO
+        (Output,
+         (Mode_AF,
           AF             => PWM_AF,
           Resistors      => Floating,
           AF_Output_Type => Push_Pull,

@@ -705,53 +705,53 @@ package body STM32.DAC is
    -- Selected_Wave_Generation --
    ------------------------------
 
-   function Selected_Wave_Generation
-     (This    : Digital_To_Analog_Converter;
-      Channel : DAC_Channel)
-      return Wave_Generation
-   is
-      Kind : Wave_Generation_Selection;
+   --  function Selected_Wave_Generation
+   --    (This    : Digital_To_Analog_Converter;
+   --     Channel : DAC_Channel)
+   --     return Wave_Generation
+   --  is
+   --     Kind : Wave_Generation_Selection;
 
-      function As_Mask is new Ada.Unchecked_Conversion
-        (Target => Noise_Wave_Mask_Selection, Source => UInt4);
+   --     function As_Mask is new Ada.Unchecked_Conversion
+   --       (Target => Noise_Wave_Mask_Selection, Source => UInt4);
 
-      function As_Amplitude is new Ada.Unchecked_Conversion
-        (Target => Triangle_Wave_Amplitude_Selection, Source => UInt4);
+   --     function As_Amplitude is new Ada.Unchecked_Conversion
+   --       (Target => Triangle_Wave_Amplitude_Selection, Source => UInt4);
 
-   begin
-      case Channel is
-         when Channel_1 =>
-            Kind := Wave_Generation_Selection'Val (This.CR.WAVE1);
-         when Channel_2 =>
-            Kind := Wave_Generation_Selection'Val (This.CR.WAVE2);
-      end case;
-      declare
-         Result : Wave_Generation (Kind);
-      begin
-         case Kind is
-            when No_Wave_Generation =>
-               null;
+   --  begin
+   --     case Channel is
+   --        when Channel_1 =>
+   --           Kind := Wave_Generation_Selection'Val (This.CR.WAVE1);
+   --        when Channel_2 =>
+   --           Kind := Wave_Generation_Selection'Val (This.CR.WAVE2);
+   --     end case;
+   --     declare
+   --        Result : Wave_Generation (Kind);
+   --     begin
+   --        case Kind is
+   --           when No_Wave_Generation =>
+   --              null;
 
-            when Noise_Wave =>
-               case Channel is
-                  when Channel_1 =>
-                     Result.Mask := As_Mask (This.CR.MAMP1);
-                  when Channel_2 =>
-                     Result.Mask := As_Mask (This.CR.MAMP2);
-               end case;
+   --           when Noise_Wave =>
+   --              case Channel is
+   --                 when Channel_1 =>
+   --                    Result.Mask := As_Mask (This.CR.MAMP1);
+   --                 when Channel_2 =>
+   --                    Result.Mask := As_Mask (This.CR.MAMP2);
+   --              end case;
 
-            when Triangle_Wave .. Sawtooth_Wave =>
-               case Channel is
-                  when Channel_1 =>
-                     Result.Amplitude := As_Amplitude (This.CR.MAMP1);
-                  when Channel_2 =>
-                     Result.Amplitude := As_Amplitude (This.CR.MAMP2);
-               end case;
-         end case;
+   --           when Triangle_Wave .. Sawtooth_Wave =>
+   --              case Channel is
+   --                 when Channel_1 =>
+   --                    Result.Amplitude := As_Amplitude (This.CR.MAMP1);
+   --                 when Channel_2 =>
+   --                    Result.Amplitude := As_Amplitude (This.CR.MAMP2);
+   --              end case;
+   --        end case;
 
-         return Result;
-      end;
-   end Selected_Wave_Generation;
+   --        return Result;
+   --     end;
+   --  end Selected_Wave_Generation;
 
    ----------------------------------------
    -- Configure_Sawtooth_Wave_Generation --

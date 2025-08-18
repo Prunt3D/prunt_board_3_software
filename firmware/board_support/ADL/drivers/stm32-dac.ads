@@ -384,13 +384,13 @@ package STM32.DAC is
    procedure Select_Wave_Generation
      (This      : in out Digital_To_Analog_Converter;
       Channel   : DAC_Channel;
-      Selection : Wave_Generation)
-     with Post => Selected_Wave_Generation (This, Channel) = Selection;
+      Selection : Wave_Generation);
+   --  with Post => Selected_Wave_Generation (This, Channel) = Selection;
 
-   function Selected_Wave_Generation
-     (This    : Digital_To_Analog_Converter;
-      Channel : DAC_Channel)
-      return Wave_Generation;
+   --  function Selected_Wave_Generation
+   --    (This    : Digital_To_Analog_Converter;
+   --     Channel : DAC_Channel)
+   --     return Wave_Generation;
 
    type Sawtooth_Direction is (Down, Up);
 

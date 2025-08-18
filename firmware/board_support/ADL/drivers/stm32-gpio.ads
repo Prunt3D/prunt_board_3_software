@@ -135,14 +135,13 @@ package STM32.GPIO is
       end case;
    end record;
 
-   type GPIO_Point is new HAL.GPIO.GPIO_Point with record
+   type GPIO_Point is record
       Periph : access GPIO_Port;
       --  Port should be a not null access, but this raises an exception
       --  during elaboration.
       Pin    : GPIO_Pin;
    end record;
 
-   overriding
    function Support (This : GPIO_Point;
                      Capa : HAL.GPIO.Capability)
                      return Boolean
@@ -150,48 +149,40 @@ package STM32.GPIO is
           when others => True);
    --  STM32 supports all GPIO capabilities
 
-   overriding
    function Mode (This : GPIO_Point) return HAL.GPIO.GPIO_Mode;
 
-   overriding
    procedure Set_Mode (This : in out GPIO_Point;
                        Mode : HAL.GPIO.GPIO_Config_Mode);
 
-   overriding
    function Pull_Resistor (This : GPIO_Point)
                            return HAL.GPIO.GPIO_Pull_Resistor;
 
-   overriding
    procedure Set_Pull_Resistor (This : in out GPIO_Point;
                                 Pull : HAL.GPIO.GPIO_Pull_Resistor);
 
-   overriding
    function Set (This : GPIO_Point) return Boolean with
      Pre => Pin_IO_Mode (This) /= Mode_AF,
      Inline;
    --  Returns True if the bit specified by This.Pin is set (not zero) in the
    --  input data register of This.Port.all; returns False otherwise.
 
-   overriding
    procedure Set (This : in out GPIO_Point) with
      Inline;
    --  For This.Port.all, sets the output data register bit specified by
    --  This.Pin to one. Other pins are unaffected.
 
-   overriding
    procedure Clear (This : in out GPIO_Point) with
      Inline;
    --  For This.Port.all, sets the output data register bit specified by
    --  This.Pin to zero. Other pins are unaffected.
 
-   overriding
    procedure Toggle (This : in out GPIO_Point) with
      Inline;
    --  For This.Port.all, negates the output data register bit specified by
    --  This.Pin (one becomes zero and vice versa). Other pins are unaffected.
 
    procedure Drive (This : in out GPIO_Point; Condition : Boolean) with
-      Post => (This.Set = Condition),
+      Post => (Set (This) = Condition),
       Inline;
    --  Drives This high or low (set or clear) based on the value of Condition
 

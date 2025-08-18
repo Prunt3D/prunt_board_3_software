@@ -62,7 +62,6 @@ with STM32.SPI;      use STM32.SPI;
 with STM32.SPI.DMA;  use STM32.SPI.DMA;
 with STM32.I2C;      use STM32.I2C;
 with STM32.I2S;      use STM32.I2S;
-with STM32.RTC;      use STM32.RTC;
 with STM32.Timers;   use STM32.Timers;
 with STM32.LPTimers; use STM32.LPTimers;
 with STM32.HRTimers; use STM32.HRTimers;
@@ -707,31 +706,6 @@ package STM32.Device is
 
    function Get_Clock_Frequency (This : I2S_Port) return UInt32;
    --  Returns I2S clock frequency, in Hertz.
-
-   ---------
-   -- RTC --
-   ---------
-
-   RTC : aliased RTC_Device;
-
-   procedure Enable_Clock (This : RTC_Device);
-
-   type RTC_Clock_Source is (No_Clock, LSE, LSI, HSE)
-     with Size => 2;
-
-   procedure Select_Clock_Source
-     (This       : RTC_Device;
-      Source     : RTC_Clock_Source)
-     with Post => Read_Clock_Source (This) = Source;
-   --  Set RTC Clock Mux source. Once the RTC clock source has been selected,
-   --  it cannot be changed anymore unless the RTC domain is reset, or unless
-   --  a failure is detected on LSE (LSECSSD is set). The BDRST bit can be used
-   --  to reset them.
-   --  The HSE clock is divided by 32 before entering the RTC to assure it is
-   --  < 1 MHz.
-
-   function Read_Clock_Source (This : RTC_Device) return RTC_Clock_Source;
-   --  Return RTC Clock Mux source.
 
    -----------
    -- Timer --
