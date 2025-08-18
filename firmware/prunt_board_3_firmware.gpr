@@ -31,7 +31,7 @@ project Prunt_Board_3_Firmware is
    end Builder;
 
    package Binder is
-      for Switches ("Ada") use ("-Es", "-D1k");
+      for Switches ("Ada") use ("-Es", "-D1k");  --  Secondary stack size may be safely reduced if required.
    end Binder;
 
    package Linker is

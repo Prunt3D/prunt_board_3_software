@@ -144,12 +144,12 @@ package System.BB.Parameters is
    -- Stacks --
    ------------
 
-   Interrupt_Stack_Size : constant := 10 * 1024;
+   Interrupt_Stack_Size : constant := 6 * 1024;
    --  Size of each of the interrupt stacks in bytes. While there nominally is
    --  an interrupt stack per interrupt priority, the entire space is used as a
    --  single stack.
 
-   Interrupt_Sec_Stack_Size : constant := 4 * 1024;
+   Interrupt_Sec_Stack_Size : constant := 1 * 1024;
    --  Size of the secondary stack for interrupt handlers
 
    ----------
