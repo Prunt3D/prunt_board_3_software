@@ -170,6 +170,8 @@ procedure Prunt_Board_3_Server is
 
    type Board_Temperature_Probe_Name is (Main_MCU);
 
+   type Empty_Enum is new Boolean range True .. False;
+
    package My_Controller_Generic_Types is new
      Prunt.Controller_Generic_Types
        (Stepper_Name                 => Stepper_Name,
@@ -177,7 +179,8 @@ procedure Prunt_Board_3_Server is
         Thermistor_Name              => Thermistor_Name,
         Board_Temperature_Probe_Name => Board_Temperature_Probe_Name,
         Fan_Name                     => Fan_Name,
-        Input_Switch_Name            => Input_Switch_Name);
+        Input_Switch_Name            => Input_Switch_Name,
+        Laser_Name                   => Empty_Enum);
 
    use My_Controller_Generic_Types;
 
@@ -732,7 +735,7 @@ procedure Prunt_Board_3_Server is
         Update_Check                     =>
           (Method       => Github,
            Repository   => Ada.Strings.Unbounded.To_Unbounded_String ("prunt3d/prunt_board_3_software"),
-           Expected_Tag => Ada.Strings.Unbounded.To_Unbounded_String ("v1.7.0")),
+           Expected_Tag => Ada.Strings.Unbounded.To_Unbounded_String ("v1.7.1")),
         Input_Switch_Visible_To_User     => (Stepper_Diag_0 => False, others => True));
 
    procedure Report_Error (Occurrence : Ada.Exceptions.Exception_Occurrence; Is_Fatal : Boolean := True) is
