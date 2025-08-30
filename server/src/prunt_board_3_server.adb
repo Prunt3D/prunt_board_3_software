@@ -218,6 +218,8 @@ procedure Prunt_Board_3_Server is
 
    procedure Report_Tachometer_Frequency (Fan : Messages.Fan_Name; Freq : Prunt.Frequency);
 
+   procedure Report_Loop_Cycles (Index : Prunt.Command_Index; Cycles : Prunt.Dimensionless);
+
    procedure Prompt_For_Update;
 
    pragma Warnings (Off, "cannot call * before body seen");
@@ -376,7 +378,14 @@ procedure Prunt_Board_3_Server is
           Use_High_Side_Switching => Byte_Boolean (Use_High_Side_Switching)));
    end Reconfigure_Fan;
 
-   procedure Setup_For_Loop_Move (Switch : Input_Switch_Name; Hit_State : Pin_State) is
+   Loop_Move_In_Queue : Boolean := False
+   with Atomic, Volatile;
+
+   Loop_Move_Index : Command_Index := Command_Index'First
+   with Atomic, Volatile;
+
+   procedure Setup_For_Loop_Move (Switch : Input_Switch_Name; Hit_State : Pin_State) with Pre => not Loop_Move_In_Queue
+   is
    begin
       My_Communications.Runner.Send_Message
         ((Kind              => Loop_Setup_Kind,
@@ -385,6 +394,8 @@ procedure Prunt_Board_3_Server is
           TMC_Read_Data     => (others => 0),
           Loop_Input_Switch => Switch,
           Loop_Until_State  => (if Hit_State = Low_State then Low else High)));
+
+      Loop_Move_In_Queue := True;
    end Setup_For_Loop_Move;
 
    procedure Setup_For_Conditional_Move (Switch : Input_Switch_Name; Hit_State : Pin_State) is
@@ -415,7 +426,8 @@ procedure Prunt_Board_3_Server is
       Safe_Stop_After => False,
       Steps           => (others => (Steps => (others => 0), Dirs => (others => Forward))));
 
-   procedure Enqueue_Command (Command : Queued_Command) is
+   procedure Enqueue_Command (Command : Queued_Command) with Pre => (if Command.Loop_Until_Hit then Loop_Move_In_Queue)
+   is
       procedure Send_Message_And_Reset is
       begin
          My_Communications.Runner.Send_Message (Step_Delta_Message);
@@ -433,6 +445,8 @@ procedure Prunt_Board_3_Server is
       end Send_Message_And_Reset;
    begin
       if Command.Loop_Until_Hit then
+         Loop_Move_Index := Command.Index;
+
          if Step_Delta_Message.Last_Index /= Step_Delta_List_Index'First then
             Step_Delta_Message.Last_Index := @ - 1;
             Send_Message_And_Reset;
@@ -516,6 +530,28 @@ procedure Prunt_Board_3_Server is
             if Command.Safe_Stop_After then
                Step_Delta_Message.Safe_Stop_After := True;
                Send_Message_And_Reset;
+
+               if Loop_Move_In_Queue then
+                  Loop_Move_In_Queue := False;
+
+                  loop
+                     declare
+                        Reply : Message_From_Client_Content;
+                     begin
+                        My_Communications.Runner.Send_Message_And_Wait_For_Reply
+                          ((Kind           => Check_Loop_Counter_Kind,
+                            Index          => <>,
+                            TMC_Write_Data => (others => 0),
+                            TMC_Read_Data  => (others => 0)),
+                           Reply);
+                        pragma Assert (Reply.Kind = Loop_Counter_Reply_Kind);
+                        if Reply.Loop_Counter /= 0 then
+                           Report_Loop_Cycles (Loop_Move_Index, Dimensionless (Reply.Loop_Counter));
+                           exit;
+                        end if;
+                     end;
+                  end loop;
+               end if;
             elsif Step_Delta_Message.Last_Index = Step_Delta_List_Index'Last then
                Send_Message_And_Reset;
             else
@@ -549,6 +585,7 @@ procedure Prunt_Board_3_Server is
          My_Communications.Runner.Send_Message_And_Wait_For_Reply
            ((Kind => Check_If_Idle_Kind, Index => <>, TMC_Write_Data => (others => 0), TMC_Read_Data => (others => 0)),
             Reply);
+         pragma Assert (Reply.Kind = Check_Reply_Kind);
          exit when Reply.Condition_Met;
       end loop;
    end Wait_Until_Idle;
@@ -772,6 +809,11 @@ procedure Prunt_Board_3_Server is
    begin
       My_Controller.Report_Tachometer_Frequency (Fan, Freq);
    end Report_Tachometer_Frequency;
+
+   procedure Report_Loop_Cycles (Index : Prunt.Command_Index; Cycles : Prunt.Dimensionless) is
+   begin
+      My_Controller.Report_Loop_Cycles (Index, Cycles);
+   end Report_Loop_Cycles;
 
    procedure Prompt_For_Update is
    begin

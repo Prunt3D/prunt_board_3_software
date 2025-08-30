@@ -117,17 +117,18 @@ package body Step_Generator is
       end if;
 
       loop
-         exit when Step_Delta_Buffer_Writer_Index + 1 /= Step_Delta_Buffer_Reader_Index and
-           (if Step_Delta_Buffer_Loop_Enabled then
-              Step_Delta_Buffer_Writer_Index + 1 /= Step_Delta_Buffer_Loop_Start_Index
-            else True);
+         exit when
+           Step_Delta_Buffer_Writer_Index + 1 /= Step_Delta_Buffer_Reader_Index
+           and (if Step_Delta_Buffer_Loop_Enabled
+                then Step_Delta_Buffer_Writer_Index + 1 /= Step_Delta_Buffer_Loop_Start_Index
+                else True);
          if Step_Delta_Buffer_Loop_Enabled then
             raise Constraint_Error with "Enqueue blocking during loop move.";
          end if;
       end loop;
 
       Step_Delta_Buffer (Step_Delta_Buffer_Writer_Index) := Steps;
-      Step_Delta_Buffer_Writer_Index                     := Step_Delta_Buffer_Writer_Index + 1;
+      Step_Delta_Buffer_Writer_Index := Step_Delta_Buffer_Writer_Index + 1;
 
       if Is_Idle and then Step_Delta_Buffer_Writer_Index + 1 = Step_Delta_Buffer_Reader_Index then
          Is_Idle := False;
@@ -139,7 +140,7 @@ package body Step_Generator is
       Init_Checker.Raise_If_Init_Not_Done;
 
       Loop_Input_Switch := Input_Switch;
-      Loop_Until_State  := Until_State;
+      Loop_Until_State := Until_State;
    end Setup_Loop;
 
    procedure Enqueue_Start_Loop is
@@ -148,6 +149,10 @@ package body Step_Generator is
 
       if Step_Delta_Buffer_Loop_Enabled then
          raise Constraint_Error with "Tried to start loop when loop is already running.";
+      end if;
+
+      if Loop_Iterations /= 0 then
+         raise Constraint_Error with "Tried to start loop before reading counter.";
       end if;
 
       Step_Delta_Buffer_Loop_Start_Index := Step_Delta_Buffer_Writer_Index;
@@ -162,7 +167,7 @@ package body Step_Generator is
       end if;
 
       Step_Delta_Buffer_Loop_End_Index := Step_Delta_Buffer_Writer_Index;
-      Step_Delta_Buffer_Loop_Enabled   := True;
+      Step_Delta_Buffer_Loop_Enabled := True;
    end Enqueue_Stop_Loop;
 
    function Check_If_Idle return Boolean is
@@ -209,6 +214,21 @@ package body Step_Generator is
       end if;
    end Enqueue_Would_Block;
 
+   function Get_And_Reset_Loop_Counter return Loop_Iteration_Count is
+      Current_Count : constant Loop_Iteration_Count := Loop_Iterations;
+   begin
+      Init_Checker.Raise_If_Init_Not_Done;
+
+      if Step_Delta_Buffer_Loop_Enabled then
+         return 0;
+      elsif Current_Count = 0 then
+         raise Constraint_Error with "No loop move enqueued.";
+      else
+         Loop_Iterations := 0;
+         return Current_Count;
+      end if;
+   end Get_And_Reset_Loop_Counter;
+
    protected body Timer_Reload_Handler is
       procedure Master_Update_Handler is
          Index            : Step_Delta_Buffer_Index := Step_Delta_Buffer_Reader_Index;
@@ -242,6 +262,16 @@ package body Step_Generator is
            and then (Index >= Loop_Start_Index
                      or else (Loop_End_Index < Loop_Start_Index and then Index < Loop_End_Index))
          then
+            declare
+               Loop_Iterations_Local : constant Loop_Iteration_Count := Loop_Iterations;
+            begin
+               if Loop_Iterations_Local = Loop_Iteration_Count'Last then
+                  raise Constraint_Error with "Loop move took too long.";
+               end if;
+
+               Loop_Iterations := Loop_Iterations_Local + 1;
+            end;
+
             if Input_Switches.Get_State (Loop_Input_Switch) = Loop_Until_State then
                Index := Loop_End_Index - 1;
                Step_Delta_Buffer_Loop_Enabled := False;

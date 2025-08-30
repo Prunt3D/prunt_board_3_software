@@ -328,6 +328,10 @@ package body Server_Communication is
                      TX_Message.Content.Condition_Met :=
                        Byte_Boolean (Heaters.Check_If_Autotune_Done (RX_Message.Content.Heater_To_Check));
 
+                  when Check_Loop_Counter_Kind =>
+                     Set_TX_Message_Kind (Loop_Counter_Reply_Kind);
+                     TX_Message.Content.Loop_Counter := Step_Generator.Get_And_Reset_Loop_Counter;
+
                   when Fan_Reconfigure_Kind =>
                      Fans.Reconfigure
                        (RX_Message.Content.Fan,
@@ -523,7 +527,6 @@ package body Server_Communication is
 
       Transmit (Comms_UART, 253);
    end Transmit_Fatal_Exception_Start_Mark;
-
 
    procedure Transmit_Fatal_Exception_End_Mark is
    begin

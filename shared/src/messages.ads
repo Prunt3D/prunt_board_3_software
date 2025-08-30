@@ -34,9 +34,11 @@ package Messages is
    type TMC2240_UART_Query_Byte_Array is array (1 .. 4) of TMC2240_UART_Byte
    with Size => 4 * 8, Component_Size => 8, Scalar_Storage_Order => System.Low_Order_First;
 
+   type Loop_Iteration_Count is range 0 .. 2**32 - 1 with Size => 32;
+
    type Client_Version is mod 2**32 with Size => 32;
 
-   Current_Firmware_Version : constant Client_Version := 14;
+   Current_Firmware_Version : constant Client_Version := 15;
 
    type Client_ID_Part is mod 2**32 with Size => 32;
 
@@ -55,7 +57,8 @@ package Messages is
 
    type Fixed_Point_PWM_Scale is delta 2.0**(-14) range 0.0 .. 1.0 with Size => 16, Small => 2.0**(-14);
 
-   type Fixed_Point_Internal_Heater_Current is delta 2.0**(-10) range -25.0 .. 25.0 with Size => 16, Small => 2.0**(-10);
+   type Fixed_Point_Internal_Heater_Current is delta 2.0**(-10) range -25.0 .. 25.0
+   with Size => 16, Small => 2.0**(-10);
 
    type CRC32 is mod 2**32 with Size => 32;
 
@@ -211,6 +214,7 @@ package Messages is
       Check_If_Heater_Autotune_Done_Kind,
       Fan_Reconfigure_Kind,
       Kalico_Reboot_Kind,
+      Check_Loop_Counter_Kind,
       Firmware_Update_Start_Kind,
       Firmware_Update_Data_Kind,
       Firmware_Update_Done_Kind)
@@ -228,6 +232,7 @@ package Messages is
       Check_If_Heater_Autotune_Done_Kind => 137,
       Fan_Reconfigure_Kind               => 138,
       Kalico_Reboot_Kind                 => 139,
+      Check_Loop_Counter_Kind            => 140,
       Firmware_Update_Start_Kind         => 252,
       Firmware_Update_Data_Kind          => 253,
       Firmware_Update_Done_Kind          => 254);
@@ -281,6 +286,9 @@ package Messages is
 
                when Check_If_Heater_Autotune_Done_Kind =>
                   Heater_To_Check : Heater_Name;
+
+               when Check_Loop_Counter_Kind =>
+                  null;
 
                when Fan_Reconfigure_Kind =>
                   Fan                     : Fan_Name;
@@ -342,11 +350,16 @@ package Messages is
 
    type Message_Length is mod 2**32 with Size => 32;
 
-   type Message_From_Client_Kind is (Hello_Kind, Firmware_Update_Reply_Kind, Status_Kind, Check_Reply_Kind)
+   type Message_From_Client_Kind is
+     (Hello_Kind, Firmware_Update_Reply_Kind, Status_Kind, Check_Reply_Kind, Loop_Counter_Reply_Kind)
    with Size => 8;
 
    for Message_From_Client_Kind use
-     (Hello_Kind => 1, Firmware_Update_Reply_Kind => 2, Status_Kind => 3, Check_Reply_Kind => 4);
+     (Hello_Kind                 => 1,
+      Firmware_Update_Reply_Kind => 2,
+      Status_Kind                => 3,
+      Check_Reply_Kind           => 4,
+      Loop_Counter_Reply_Kind    => 5);
 
    type Message_From_Client_Content (Kind : Message_From_Client_Kind := Hello_Kind) is record
       Index : Message_Index;
@@ -377,6 +390,9 @@ package Messages is
 
                when Check_Reply_Kind =>
                   Condition_Met : Byte_Boolean;
+
+               when Loop_Counter_Reply_Kind =>
+                  Loop_Counter : Loop_Iteration_Count;
             end case;
       end case;
    end record
@@ -401,6 +417,7 @@ package Messages is
        Tachs at 52 range 0 .. 63;
        TMC_Data at 60 range 0 .. 63;
        Condition_Met at 68 range 0 .. 7;
+       Loop_Counter at 68 range 0 .. 31;
      end record;
 
    type Message_From_Client is record

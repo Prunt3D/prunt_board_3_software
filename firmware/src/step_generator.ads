@@ -19,6 +19,17 @@ package Step_Generator is
    function Loop_Enqueued return Boolean;
    function Enqueue_Would_Block (Number_Of_Steps : Step_Delta_List_Index) return Boolean;
 
+   function Get_And_Reset_Loop_Counter return Loop_Iteration_Count;
+   --  Returns the number of iterations taken to complete the last loop move. This is the number of timer reloads, not
+   --  the number of complete loops. Zero is a sentinel value to indicate that the loop move is still running as a loop
+   --  move always runs for at least one timer reload.
+   --
+   --  This function must be called and a valid value must be read for each loop before another loop start can be
+   --  enqueued. After this function is called and a valid value is read it may not be called again until another loop
+   --  stop is enqueued.
+   --
+   --  Will raise a Constraint_Error if there is no loop running or enqueued.
+
    Empty_Buffer_Error : exception;
 
 private
@@ -57,6 +68,9 @@ private
      Volatile, Atomic;
 
    Buffer_Ran_Dry : Boolean := False with
+     Volatile, Atomic;
+
+   Loop_Iterations : Loop_Iteration_Count := 0 with
      Volatile, Atomic;
 
    type Step_Period_Parameters is record
