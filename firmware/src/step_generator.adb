@@ -211,8 +211,12 @@ package body Step_Generator is
 
    protected body Timer_Reload_Handler is
       procedure Master_Update_Handler is
-         Steps : Step_Delta_Steps renames Step_Delta_Buffer (Step_Delta_Buffer_Reader_Index).Steps;
-         Dirs  : Step_Delta_Dirs renames Step_Delta_Buffer (Step_Delta_Buffer_Reader_Index).Dirs;
+         Index            : Step_Delta_Buffer_Index := Step_Delta_Buffer_Reader_Index;
+         Loop_Start_Index : constant Step_Delta_Buffer_Index := Step_Delta_Buffer_Loop_Start_Index;
+         Loop_End_Index   : constant Step_Delta_Buffer_Index := Step_Delta_Buffer_Loop_End_Index;
+
+         Steps : Step_Delta_Steps renames Step_Delta_Buffer (Index).Steps;
+         Dirs  : Step_Delta_Dirs renames Step_Delta_Buffer (Index).Dirs;
       begin
          Clear_Pending_Interrupt (STM32.Device.HRTimer_M, Update_Interrupt);
 
@@ -234,21 +238,24 @@ package body Step_Generator is
             Set_Compare_Value (HRTim_Map (S).all, Compare_3, (if Dirs (S) = Forward then 0 else 65_535));
          end loop;
 
-         if Step_Delta_Buffer_Loop_Enabled then
+         if Step_Delta_Buffer_Loop_Enabled
+           and then (Index >= Loop_Start_Index
+                     or else (Loop_End_Index < Loop_Start_Index and then Index < Loop_End_Index))
+         then
             if Input_Switches.Get_State (Loop_Input_Switch) = Loop_Until_State then
-               Step_Delta_Buffer_Reader_Index := Step_Delta_Buffer_Loop_End_Index - 1;
+               Index := Loop_End_Index - 1;
                Step_Delta_Buffer_Loop_Enabled := False;
-            elsif Step_Delta_Buffer_Reader_Index + 1 = Step_Delta_Buffer_Loop_End_Index then
-               Step_Delta_Buffer_Reader_Index := Step_Delta_Buffer_Loop_Start_Index - 1;
+            elsif Index + 1 = Loop_End_Index then
+               Index := Loop_Start_Index - 1;
             end if;
          end if;
 
-         if Step_Delta_Buffer_Reader_Index + 1 = Step_Delta_Buffer_Writer_Index then
-            if Step_Delta_Buffer (Step_Delta_Buffer_Reader_Index).Steps = Step_Delta_Steps'(others => 0) then
+         if Index + 1 = Step_Delta_Buffer_Writer_Index then
+            if Step_Delta_Buffer (Index).Steps = Step_Delta_Steps'(others => 0) then
                --  We assume that the machine can stop without issue if there are zero steps in a given period, even if
                --  this is not a safe stop point.
-               Step_Delta_Buffer_Reader_Index := Step_Delta_Buffer_Reader_Index + 1;
-               Is_Idle                        := True;
+               Index := Index + 1;
+               Is_Idle := True;
             else
                --  TODO: Maybe slow down instead of immediately going to zero.
                for S in Stepper_Name loop
@@ -258,8 +265,10 @@ package body Step_Generator is
                Buffer_Ran_Dry := True;
             end if;
          else
-            Step_Delta_Buffer_Reader_Index := Step_Delta_Buffer_Reader_Index + 1;
+            Index := Index + 1;
          end if;
+
+         Step_Delta_Buffer_Reader_Index := Index;
       exception
          when E : others =>
             Last_Chance_Handler.Last_Chance_Handler (E);
