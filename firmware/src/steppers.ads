@@ -2,10 +2,13 @@ with Messages;      use Messages;
 with HAL;           use HAL;
 with Ada.Real_Time; use Ada.Real_Time;
 with Init_Checkers;
+with TMC2240;
 
 package Steppers is
 
    procedure Init;
+
+   procedure Send_To_All_Steppers (Message : TMC2240.UART_Data_Message);
 
    protected UART_IO is
       procedure Start_Read (Input : TMC2240_UART_Query_Byte_Array);
